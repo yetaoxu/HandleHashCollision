@@ -19,10 +19,10 @@ struct HashTable {
 };
 
 int hashFunc1(HashTable *hashtable, int key) {
-    return key % 10;
+    return key % hashtable->hashLen;
 }
 int hashFunc2(HashTable *hashtable, int key) {
-    return key % 7;
+    return 7 - (key % 7);
 }
 
 HashTable *initHashTable(int len) {
@@ -38,12 +38,21 @@ HashTable *initHashTable(int len) {
 
 void insert(HashTable *hashtable, int key, char *name) {
     int address = hashFunc1(hashtable, key);
-    while ((hashtable->data + address)->id != NULL) {
-        address = hashFunc2(hashtable, key);
-        break;
+    int newaddr = address;
+    if ((hashtable->data + address)->id != NULL) {
+        int address2 = hashFunc2(hashtable, key);
+        int i = 0;
+        while (1) {
+            newaddr = (address + address2 * i) % hashtable->hashLen;
+            if ((hashtable->data + newaddr)->id == NULL) {
+                break;
+            } else {
+                i++;
+            }
+        }
     }
-    cout << "the key: " << key << ", insert address is " << address << endl;
-    Student *head = hashtable->data + address;
+    cout << "the key: " << key << ", insert address is " << newaddr << endl;
+    Student *head = hashtable->data + newaddr;
     head->id = key;
     int nameLen = (int) strlen(name);
     head->name = (char *)malloc(sizeof(char) * nameLen);
@@ -52,14 +61,21 @@ void insert(HashTable *hashtable, int key, char *name) {
 
 string findName(HashTable *hashtable, int key) {
     int address = hashFunc1(hashtable, key);
-    while ((hashtable->data + address)->id != key) {
-        address = hashFunc2(hashtable, key);
-        if ((hashtable->data + address)->id != key) {
-            return "Not found";
+    int newaddr = address;
+    if ((hashtable->data + address)->id != key) {
+        int address2 = hashFunc2(hashtable, key);
+        int i = 0;
+        while (1) {
+            newaddr = (address + address2 * i) % hashtable->hashLen;
+            if ((hashtable->data + newaddr)->id == key) {
+                break;
+            } else {
+                i++;
+            }
         }
     }
-    cout << "find the key: " << key <<  ", the address is " << address << endl;
-    return (hashtable->data + address)->name;
+    cout << "find the key: " << key <<  ", the address is " << newaddr << endl;
+    return (hashtable->data + newaddr)->name;
 }
 
 int main()
