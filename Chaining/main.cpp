@@ -5,7 +5,7 @@
 #include <string>
 #include <queue>
 using namespace std;
-
+#define TABLE_SIZE 10
 
 struct Student
 {
@@ -19,15 +19,15 @@ struct HashTable {
     Student *data;
 };
 
-int hashFunc(HashTable *hashtable, int key) {
-    return key % 10;
+int hashFunc(int key) {
+    return key % TABLE_SIZE;
 }
 
-HashTable *initHashTable(int len) {
+HashTable *initHashTable() {
     HashTable *hashtable = (HashTable *) malloc(sizeof(HashTable));
-    hashtable->hashLen= len;
-    hashtable->data = (Student *)malloc(sizeof(Student) * len);
-    for (Student *t = hashtable->data; t != hashtable->data + len; t++) {
+    hashtable->hashLen= TABLE_SIZE;
+    hashtable->data = (Student *)malloc(sizeof(Student) * TABLE_SIZE);
+    for (Student *t = hashtable->data; t != hashtable->data + TABLE_SIZE; t++) {
         t->id = NULL;
         t->name = nullptr;
         t->next = nullptr;
@@ -36,7 +36,7 @@ HashTable *initHashTable(int len) {
 }
 
 void insert(HashTable *hashtable, int key, char *name) {
-    int address = hashFunc(hashtable, key);
+    int address = hashFunc(key);
     Student *head = hashtable->data + address;
     while (true){
         if (head->id == NULL) {
@@ -45,6 +45,7 @@ void insert(HashTable *hashtable, int key, char *name) {
             head->name = (char *)malloc(sizeof(char) * nameLen);
             head->name = name;
             head->next = nullptr;
+            cout << "insert key : " << key << " success" << endl;
             break;
         }
         if (head->id != NULL){
@@ -55,6 +56,7 @@ void insert(HashTable *hashtable, int key, char *name) {
             newNode->name = name;
             newNode->next = nullptr;
             head->next = newNode;
+            cout << "insert key : " << key << " success" << endl;
             break;
         }
         head = head->next;
@@ -62,7 +64,7 @@ void insert(HashTable *hashtable, int key, char *name) {
 }
 
 string findName(HashTable *hashtable, int key) {
-    int address = hashFunc(hashtable, key);
+    int address = hashFunc(key);
     Student *temp = hashtable->data + address;
     while (temp->id != key) {
         temp = temp->next;
@@ -72,7 +74,7 @@ string findName(HashTable *hashtable, int key) {
 
 int main()
 {
-    HashTable *a = initHashTable(10);
+    HashTable *a = initHashTable();
     insert(a, 2, "xu");
     insert(a, 12, "tao");
     cout << "cin the ID you wan to find: " << endl;

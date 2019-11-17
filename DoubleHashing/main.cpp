@@ -5,8 +5,8 @@
 #include <string>
 #include <queue>
 using namespace std;
-
-
+#define TABLE_SIZE 10
+#define PRIME 7
 struct Student
 {
     int id;
@@ -15,21 +15,30 @@ struct Student
 
 struct HashTable {
     int hashLen;
+    int curSize;
     Student *data;
 };
 
-int hashFunc1(HashTable *hashtable, int key) {
-    return key % hashtable->hashLen;
-}
-int hashFunc2(HashTable *hashtable, int key) {
-    return 7 - (key % 7);
+bool isFull(HashTable *hashtable) {
+    return hashtable->curSize == hashtable->hashLen;
 }
 
-HashTable *initHashTable(int len) {
+int hashFunc1(int key) {
+    return key % TABLE_SIZE;
+}
+
+int hashFunc2(int base, int key) {
+    int addr1 = hashFunc1(key);
+    int newaddress = (addr1 + (PRIME - (key % PRIME)) * base) % TABLE_SIZE;
+    return newaddress;
+}
+
+HashTable *initHashTable() {
     HashTable *hashtable = (HashTable *) malloc(sizeof(HashTable));
-    hashtable->hashLen= len;
-    hashtable->data = (Student *)malloc(sizeof(Student) * len);
-    for (Student *t = hashtable->data; t != hashtable->data + len; t++) {
+    hashtable->hashLen = TABLE_SIZE;
+    hashtable->curSize = 0;
+    hashtable->data = (Student *)malloc(sizeof(Student) * TABLE_SIZE);
+    for (Student *t = hashtable->data; t != hashtable->data + TABLE_SIZE; t++) {
         t->id = NULL;
         t->name = nullptr;
     }
@@ -37,50 +46,40 @@ HashTable *initHashTable(int len) {
 }
 
 void insert(HashTable *hashtable, int key, char *name) {
-    int address = hashFunc1(hashtable, key);
-    int newaddr = address;
-    if ((hashtable->data + address)->id != NULL) {
-        int address2 = hashFunc2(hashtable, key);
-        int i = 0;
-        while (1) {
-            newaddr = (address + address2 * i) % hashtable->hashLen;
-            if ((hashtable->data + newaddr)->id == NULL) {
-                break;
-            } else {
-                i++;
-            }
-        }
+    if (isFull(hashtable)) {
+        cout << "The hashtable is full... " << endl;
+        return;
     }
-    cout << "the key: " << key << ", insert address is " << newaddr << endl;
-    Student *head = hashtable->data + newaddr;
+    int address = hashFunc1(key);
+    int i = 1;
+    while ((hashtable->data + address)->id != NULL) {
+        address = hashFunc2(i, key);
+        i++;
+    }
+    cout << "the key: " << key << ", insert address is " << address << endl;
+    Student *head = hashtable->data + address;
     head->id = key;
     int nameLen = (int) strlen(name);
     head->name = (char *)malloc(sizeof(char) * nameLen);
     head->name = name;
+    hashtable->hashLen++;
+    hashtable->curSize++;
 }
 
 string findName(HashTable *hashtable, int key) {
-    int address = hashFunc1(hashtable, key);
-    int newaddr = address;
-    if ((hashtable->data + address)->id != key) {
-        int address2 = hashFunc2(hashtable, key);
-        int i = 0;
-        while (1) {
-            newaddr = (address + address2 * i) % hashtable->hashLen;
-            if ((hashtable->data + newaddr)->id == key) {
-                break;
-            } else {
-                i++;
-            }
-        }
+    int address = hashFunc1(key);
+    int i = 1;
+    while ((hashtable->data + address)->id != key) {
+        address = hashFunc2(i, key);
+        i++;
     }
-    cout << "find the key: " << key <<  ", the address is " << newaddr << endl;
-    return (hashtable->data + newaddr)->name;
+    cout << "find the key: " << key <<  ", the address is " << address << endl;
+    return (hashtable->data + address)->name;
 }
 
 int main()
 {
-    HashTable *a = initHashTable(10);
+    HashTable *a = initHashTable();
     insert(a, 2, "xu");
     insert(a, 12, "tao");
     cout << "cin the ID you wan to find: " << endl;
